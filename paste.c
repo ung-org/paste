@@ -31,8 +31,12 @@
 
 static char *delimiter = "\t";
 
-void putdelim(void)
+void putdelim(int put)
 {
+	if (!put) {
+		return;
+	}
+
 	static int i = 0;
 	if (delimiter[i] == '\\') {
 		switch (delimiter[++i]) {
@@ -80,7 +84,7 @@ int paste_serial(char *files[])
 		while ((c = fgetc(f)) != EOF) {
 			/* FIXME: off-by-one on last line */
 			if (c == '\n') {
-				putdelim();
+				putdelim(1);
 			} else {
 				putchar(c);
 			}
@@ -116,8 +120,7 @@ int paste(int nfiles, char *files[])
 	size_t n = 0;
 
 	while (nopen > 0) {
-		/* TODO: delim */
-		for (int i = 0; i < nfiles; putdelim(), i++) {
+		for (int i = 0; i < nfiles; putdelim(++i < nfiles)) {
 			if (f[i] == NULL) {
 				continue;
 			}
@@ -131,6 +134,9 @@ int paste(int nfiles, char *files[])
 				f[i] = NULL;
 				nopen--;
 
+				if (nopen == 0) {
+					i = nfiles;
+				}
 				continue;
 			}
 
